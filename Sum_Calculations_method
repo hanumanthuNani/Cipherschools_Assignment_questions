@@ -1,0 +1,37 @@
+#include <iostream>
+#include <vector>
+#include <numeric>
+using namespace std;
+
+int sumUsingLoop(const vector<int>& nums) {
+    int sum = 0;
+    for (int num : nums) {
+        sum += num;
+    }
+    return sum;
+}
+
+int sumRecursive(const vector<int>& nums, int n) {
+    if (n == 0) return 0;
+    return nums[n - 1] + sumRecursive(nums, n - 1);
+}
+
+int main() {
+    vector<int> nums;
+    int n;
+    cout << "Enter the number of elements: ";
+    cin >> n;
+    cout << "Enter the integers: ";
+    for (int i = 0; i < n; ++i) {
+        int temp;
+        cin >> temp;
+        nums.push_back(temp);
+    }
+    int sumLoop = sumUsingLoop(nums);
+    cout << "Sum using loop: " << sumLoop << endl;
+    int sumRec = sumRecursive(nums, nums.size());
+    cout << "Sum using recursion: " << sumRec << endl;
+    int sumBuiltIn = accumulate(nums.begin(), nums.end(), 0);
+    cout << "Sum using built-in function: " << sumBuiltIn << endl;
+    return 0;
+}
