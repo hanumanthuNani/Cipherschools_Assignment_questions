@@ -1,0 +1,103 @@
+class HashTable:
+    def __init__(self, size, method):
+        self.size = size
+        self.method = method
+        if method == "CHAINING":
+            self.table = [[] for _ in range(size)]
+        elif method == "OPEN_ADDRESSING":
+            self.table = [None] * size
+        self.deleted = "<DELETED>"
+
+    def hash_function(self, key):
+        return key % self.size
+
+    def insert_chaining(self, key):
+        index = self.hash_function(key)
+        if key not in self.table[index]:
+            self.table[index].append(key)
+
+    def search_chaining(self, key):
+        index = self.hash_function(key)
+        return key in self.table[index]
+
+    def delete_chaining(self, key):
+        index = self.hash_function(key)
+        if key in self.table[index]:
+            self.table[index].remove(key)
+
+    def insert_open_addressing(self, key):
+        index = self.hash_function(key)
+        start_index = index
+        while self.table[index] is not None and self.table[index] != self.deleted:
+            if self.table[index] == key:
+                return  # Key already exists
+            index = (index + 1) % self.size
+            if index == start_index:  # Table is full
+                return
+        self.table[index] = key
+
+    def search_open_addressing(self, key):
+        index = self.hash_function(key)
+        start_index = index
+        while self.table[index] is not None:
+            if self.table[index] == key:
+                return True
+            index = (index + 1) % self.size
+            if index == start_index:
+                break
+        return False
+
+    def delete_open_addressing(self, key):
+        index = self.hash_function(key)
+        start_index = index
+        while self.table[index] is not None:
+            if self.table[index] == key:
+                self.table[index] = self.deleted
+                return
+            index = (index + 1) % self.size
+            if index == start_index:
+                break
+
+    def insert(self, key):
+        if self.method == "CHAINING":
+            self.insert_chaining(key)
+        elif self.method == "OPEN_ADDRESSING":
+            self.insert_open_addressing(key)
+
+    def search(self, key):
+        if self.method == "CHAINING":
+            return self.search_chaining(key)
+        elif self.method == "OPEN_ADDRESSING":
+            return self.search_open_addressing(key)
+
+    def delete(self, key):
+        if self.method == "CHAINING":
+            self.delete_chaining(key)
+        elif self.method == "OPEN_ADDRESSING":
+            self.delete_open_addressing(key)
+
+
+def main():
+    m = int(input())
+    method = input().strip()
+    q = int(input())
+
+    hash_table = HashTable(m, method)
+
+    for _ in range(q):
+        query = input().strip().split()
+        operation, key = query[0], int(query[1])
+
+        if operation == "INSERT":
+            hash_table.insert(key)
+        elif operation == "SEARCH":
+            if hash_table.search(key):
+                print("FOUND")
+            else:
+                print("NOT FOUND")
+        elif operation == "DELETE":
+            hash_table.delete(key)
+
+
+if __name__ == "__main__":
+    main()
