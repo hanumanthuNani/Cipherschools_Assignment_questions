@@ -1,103 +1,141 @@
-class HashTable:
-    def __init__(self, size, method):
-        self.size = size
-        self.method = method
-        if method == "CHAINING":
-            self.table = [[] for _ in range(size)]
-        elif method == "OPEN_ADDRESSING":
-            self.table = [None] * size
-        self.deleted = "<DELETED>"
+#include <iostream>
+#include <vector>
+#include <list>
+#include <string>
 
-    def hash_function(self, key):
-        return key % self.size
+using namespace std;
 
-    def insert_chaining(self, key):
-        index = self.hash_function(key)
-        if key not in self.table[index]:
-            self.table[index].append(key)
+class HashTable {
+private:
+    int size;
+    string method;
+    vector<list<int>> chainingTable;
+    vector<int> openAddressingTable;
+    vector<bool> deleted;
 
-    def search_chaining(self, key):
-        index = self.hash_function(key)
-        return key in self.table[index]
+    int hashFunction(int key) {
+        return key % size;
+    }
 
-    def delete_chaining(self, key):
-        index = self.hash_function(key)
-        if key in self.table[index]:
-            self.table[index].remove(key)
+    void insertChaining(int key) {
+        int index = hashFunction(key);
+        for (int k : chainingTable[index]) {
+            if (k == key) return; // Key already exists
+        }
+        chainingTable[index].push_back(key);
+    }
 
-    def insert_open_addressing(self, key):
-        index = self.hash_function(key)
-        start_index = index
-        while self.table[index] is not None and self.table[index] != self.deleted:
-            if self.table[index] == key:
-                return  # Key already exists
-            index = (index + 1) % self.size
-            if index == start_index:  # Table is full
-                return
-        self.table[index] = key
+    bool searchChaining(int key) {
+        int index = hashFunction(key);
+        for (int k : chainingTable[index]) {
+            if (k == key) return true;
+        }
+        return false;
+    }
 
-    def search_open_addressing(self, key):
-        index = self.hash_function(key)
-        start_index = index
-        while self.table[index] is not None:
-            if self.table[index] == key:
-                return True
-            index = (index + 1) % self.size
-            if index == start_index:
-                break
-        return False
+    void deleteChaining(int key) {
+        int index = hashFunction(key);
+        chainingTable[index].remove(key);
+    }
 
-    def delete_open_addressing(self, key):
-        index = self.hash_function(key)
-        start_index = index
-        while self.table[index] is not None:
-            if self.table[index] == key:
-                self.table[index] = self.deleted
-                return
-            index = (index + 1) % self.size
-            if index == start_index:
-                break
+    void insertOpenAddressing(int key) {
+        int index = hashFunction(key);
+        int start_index = index;
+        while (openAddressingTable[index] != -1 && openAddressingTable[index] != key && !deleted[index]) {
+            index = (index + 1) % size;
+            if (index == start_index) return; // Table is full
+        }
+        openAddressingTable[index] = key;
+        deleted[index] = false;
+    }
 
-    def insert(self, key):
-        if self.method == "CHAINING":
-            self.insert_chaining(key)
-        elif self.method == "OPEN_ADDRESSING":
-            self.insert_open_addressing(key)
+    bool searchOpenAddressing(int key) {
+        int index = hashFunction(key);
+        int start_index = index;
+        while (openAddressingTable[index] != -1) {
+            if (openAddressingTable[index] == key && !deleted[index]) return true;
+            index = (index + 1) % size;
+            if (index == start_index) break;
+        }
+        return false;
+    }
 
-    def search(self, key):
-        if self.method == "CHAINING":
-            return self.search_chaining(key)
-        elif self.method == "OPEN_ADDRESSING":
-            return self.search_open_addressing(key)
+    void deleteOpenAddressing(int key) {
+        int index = hashFunction(key);
+        int start_index = index;
+        while (openAddressingTable[index] != -1) {
+            if (openAddressingTable[index] == key && !deleted[index]) {
+                deleted[index] = true;
+                return;
+            }
+            index = (index + 1) % size;
+            if (index == start_index) break;
+        }
+    }
 
-    def delete(self, key):
-        if self.method == "CHAINING":
-            self.delete_chaining(key)
-        elif self.method == "OPEN_ADDRESSING":
-            self.delete_open_addressing(key)
+public:
+    HashTable(int m, string method) : size(m), method(method) {
+        if (method == "CHAINING") {
+            chainingTable.resize(size);
+        } else if (method == "OPEN_ADDRESSING") {
+            openAddressingTable.resize(size, -1);
+            deleted.resize(size, false);
+        }
+    }
 
+    void insert(int key) {
+        if (method == "CHAINING") {
+            insertChaining(key);
+        } else if (method == "OPEN_ADDRESSING") {
+            insertOpenAddressing(key);
+        }
+    }
 
-def main():
-    m = int(input())
-    method = input().strip()
-    q = int(input())
+    bool search(int key) {
+        if (method == "CHAINING") {
+            return searchChaining(key);
+        } else if (method == "OPEN_ADDRESSING") {
+            return searchOpenAddressing(key);
+        }
+        return false;
+    }
 
-    hash_table = HashTable(m, method)
+    void remove(int key) {
+        if (method == "CHAINING") {
+            deleteChaining(key);
+        } else if (method == "OPEN_ADDRESSING") {
+            deleteOpenAddressing(key);
+        }
+    }
+};
 
-    for _ in range(q):
-        query = input().strip().split()
-        operation, key = query[0], int(query[1])
+int main() {
+    int m;
+    cin >> m;
+    string method;
+    cin >> method;
+    int q;
+    cin >> q;
 
-        if operation == "INSERT":
-            hash_table.insert(key)
-        elif operation == "SEARCH":
-            if hash_table.search(key):
-                print("FOUND")
-            else:
-                print("NOT FOUND")
-        elif operation == "DELETE":
-            hash_table.delete(key)
+    HashTable hashTable(m, method);
 
+    for (int i = 0; i < q; i++) {
+        string operation;
+        int key;
+        cin >> operation >> key;
 
-if __name__ == "__main__":
-    main()
+        if (operation == "INSERT") {
+            hashTable.insert(key);
+        } else if (operation == "SEARCH") {
+            if (hashTable.search(key)) {
+                cout << "FOUND" << endl;
+            } else {
+                cout << "NOT FOUND" << endl;
+            }
+        } else if (operation == "DELETE") {
+            hashTable.remove(key);
+        }
+    }
+
+    return 0;
+}
